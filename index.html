@@ -1,0 +1,317 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini E-Commerce Store</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #f5f6fa;
+    color: #222;
+}
+
+header {
+    background: #22223b;
+    color: white;
+    padding: 20px 7%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header h1 {
+    font-size: 25px;
+}
+
+.cart-count {
+    background: #ff6b6b;
+    padding: 9px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 35px auto;
+    padding: 0 20px;
+}
+
+h2 {
+    margin-bottom: 25px;
+    color: #22223b;
+}
+
+.products {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+    gap: 25px;
+}
+
+.product {
+    background: white;
+    padding: 18px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 4px 15px #0001;
+    transition: 0.3s;
+}
+
+.product:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 25px #0002;
+}
+
+.product img {
+    width: 100%;
+    height: 180px;
+    object-fit: contain;
+    margin-bottom: 15px;
+}
+
+.product h3 {
+    margin: 10px 0;
+}
+
+.price {
+    color: #635bff;
+    font-size: 21px;
+    font-weight: bold;
+    margin: 12px;
+}
+
+button {
+    border: none;
+    padding: 11px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.add {
+    background: #635bff;
+    color: white;
+}
+
+.add:hover {
+    background: #4038d9;
+}
+
+.cart {
+    background: white;
+    margin-top: 40px;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px #0001;
+}
+
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.actions button {
+    background: #eee;
+}
+
+.remove {
+    background: #ff6b6b !important;
+    color: white;
+}
+
+.total {
+    text-align: right;
+    font-size: 23px;
+    font-weight: bold;
+    margin-top: 25px;
+    color: #635bff;
+}
+
+.empty {
+    color: #888;
+    padding: 15px 0;
+}
+
+@media(max-width:600px) {
+    header {
+        padding: 18px;
+    }
+
+    header h1 {
+        font-size: 19px;
+    }
+
+    .cart-item {
+        flex-wrap: wrap;
+    }
+
+    .total {
+        font-size: 19px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>🛍️ Mini Store</h1>
+    <div class="cart-count">
+        🛒 Cart: <span id="count">0</span>
+    </div>
+</header>
+
+<div class="container">
+
+    <h2>Explore Products</h2>
+
+    <div class="products" id="products"></div>
+
+    <div class="cart">
+        <h2>🛒 Shopping Cart</h2>
+
+        <div id="cartItems">
+            <p class="empty">Your cart is empty!</p>
+        </div>
+
+        <div class="total">
+            Total: ₹<span id="total">0</span>
+        </div>
+    </div>
+
+</div>
+
+<script>
+
+const products = [
+    {
+        id: 1,
+        name: "Headphones",
+        price: 999,
+        image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500"
+    },
+    {
+        id: 2,
+        name: "Smart Watch",
+        price: 1499,
+        image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500"
+    },
+    {
+        id: 3,
+        name: "Camera",
+        price: 2999,
+        image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=500"
+    },
+    {
+        id: 4,
+        name: "Shoes",
+        price: 1999,
+        image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500"
+    }
+];
+
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+function displayProducts() {
+    document.getElementById("products").innerHTML =
+    products.map(p => `
+        <div class="product">
+            <img src="${p.image}" alt="${p.name}">
+            <h3>${p.name}</h3>
+            <p class="price">₹${p.price}</p>
+            <button class="add" onclick="addToCart(${p.id})">
+                Add to Cart
+            </button>
+        </div>
+    `).join("");
+}
+
+function addToCart(id) {
+    let item = cart.find(p => p.id === id);
+
+    if (item) {
+        item.qty++;
+    } else {
+        let product = products.find(p => p.id === id);
+        cart.push({...product, qty: 1});
+    }
+
+    updateCart();
+}
+
+function changeQty(id, amount) {
+    let item = cart.find(p => p.id === id);
+    if (!item) return;
+
+    item.qty += amount;
+
+    if (item.qty <= 0) {
+        cart = cart.filter(p => p.id !== id);
+    }
+
+    updateCart();
+}
+
+function removeItem(id) {
+    cart = cart.filter(p => p.id !== id);
+    updateCart();
+}
+
+function updateCart() {
+    localStorage.setItem("cart", JSON.stringify(cart));
+
+    let count = cart.reduce((sum, p) => sum + p.qty, 0);
+    let total = cart.reduce((sum, p) => sum + p.price * p.qty, 0);
+
+    document.getElementById("count").innerText = count;
+    document.getElementById("total").innerText = total.toLocaleString("en-IN");
+
+    let cartHTML = document.getElementById("cartItems");
+
+    if (cart.length === 0) {
+        cartHTML.innerHTML = '<p class="empty">Your cart is empty!</p>';
+    } else {
+        cartHTML.innerHTML = cart.map(p => `
+            <div class="cart-item">
+                <div>
+                    <b>${p.name}</b>
+                    <p>₹${p.price} × ${p.qty}</p>
+                </div>
+
+                <div class="actions">
+                    <button onclick="changeQty(${p.id},-1)">−</button>
+                    <span>${p.qty}</span>
+                    <button onclick="changeQty(${p.id},1)">+</button>
+                    <button class="remove"
+                    onclick="removeItem(${p.id})">Remove</button>
+                </div>
+            </div>
+        `).join("");
+    }
+}
+
+displayProducts();
+updateCart();
+
+</script>
+
+</body>
+</html>
